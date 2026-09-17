@@ -1,4 +1,4 @@
--- Active: 1787177433004@@127.0.0.1@5432@bd_aula@public
+-- Active: 1789679199049@@127.0.0.1@5432@bd_hortifruti@public
 
 DROP TABLE aluno;
 DROP TABLE curso;

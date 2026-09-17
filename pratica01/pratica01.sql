@@ -1,17 +1,41 @@
--- Active: 1789657922555@@127.0.0.1@5432@bd_aula@public
+-- Active: 1789679199049@@127.0.0.1@5432@bd_hortifruti@public
+
+-- APS I - BANCO DE DADOS
+-- ALUNO: IGOR VINÍCIUS ROMAO DE MAGALHAES
+-- TURMA: SISTEMAS DE INFORMACAO - 4A
+
+
+-- CRIACAO DA TABELA:
 DROP TABLE IF EXISTS itens_venda;
-CREATE TABLE IF NOT EXISTS itens_venda(
+CREATE TABLE itens_venda(
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     venda_id INTEGER NOT NULL,
     data_venda DATE NOT NULL,
-    bairro_entrega TEXT NULL,      -- nem todos os clientes necessitam de entrega
+    bairro_entrega TEXT NULL,      
     produto_id     INTEGER NOT NULL,
     produto_nome   TEXT NOT NULL,
     categoria      TEXT NOT NULL,
     unidade        TEXT NOT NULL,
-    quantidade     INTEGER NOT NULL,  -- é necessário que o produto selecionado tenha uma quantidade
-    valor_unitario NUMERIC(10,2) NOT NULL   -- obrigatoriamente, um produto deve ter um valor
+    quantidade     NUMERIC(10,3) NOT NULL,  
+    valor_unitario NUMERIC(10,2) NOT NULL   
 );
+
+--- Justificativas de tipos e restricoes
+
+--- bairro_entrega: nem todos os clientes necessitam de entrega, por isso NULL, 
+--- text pois os bairros sao escritos na tabela
+
+--- quantidade: NOTNULL é necessário porque o produto selecionado
+--- precisa obrigatoriamente ter uma quantidade, NUMERIC porque é representado por números
+--- precisao de gramas (10,3) atendendo a regra 5
+
+--- valor_unitario: NOTNULL é necessário porque o produto selecionado
+--- precisa obrigatoriamente ter uma valor, NUMERIC porque é representado por números
+--- precisao de valor (10,2) atendendo a regra 7
+
+
+--- CARGA DOS DADOS:
+
 INSERT INTO itens_venda (venda_id, data_venda, bairro_entrega, produto_id, produto_nome,
  categoria, unidade, quantidade, valor_unitario) VALUES
 -- 2026-08-03, segunda-feira
@@ -80,55 +104,215 @@ SELECT
 FROM
     itens_venda;
 
--- CONSULTA 01
+
+------------------------- CONSULTA 01 ------------------------- 
+
+SELECT DISTINCT --- DISTINCT: tirar linhas duplicadas e retornar valores unicos
+    produto_id,
+    produto_nome,
+    categoria,
+    unidade
+FROM
+    itens_venda
+ORDER BY
+    categoria,
+    produto_nome;
+
+------------------------- CONSULTA 02 ------------------------- 
 
 SELECT
-    produto_id AS "Código do Produto",
-    produto_nome AS "Nome do Produto",
-    categoria AS "Categoria",
-    unidade AS "Unidade de Medida"
+    venda_id,
+    produto_nome,
+    valor_unitario
 FROM
-    itens_venda; 
+    itens_venda
+WHERE
+    categoria IN ('Legume', 'Verdura') --- IN: utilizado p/ pegar valores das 2 categorias
+    AND valor_unitario BETWEEN 3.00 AND 5.00 --- AND: segunda condicao, BETWEEN: recorte de valor
+ORDER BY
+    valor_unitario DESC, --- DESC: menor p/ maior
+    venda_id; --- Desempate: número da venda
 
--- CONSULTA 02 
+
+------------------------- CONSULTA 03 -------------------------
 
 SELECT
-    produto_id AS "Código do Produto",
-    produto_nome AS "Nome do Produto",
-    categoria AS "Categoria",
-    unidade AS "Unidade de Medida"
+    venda_id,
+    data_venda,
+    produto_nome,
+    quantidade
 FROM
-    itens_venda; 
+    itens_venda
+WHERE
+    produto_nome LIKE 'Batata%' --- LIKE: usado p/ buscar texto e %: qlqr tipo de batata
+ORDER BY
+    data_venda, --- ordem de venda
+    venda_id; --- desempate, ID
 
--- CONSULTA 03
 
+------------------------- CONSULTA 04 -------------------------
+
+SELECT DISTINCT
+    venda_id,
+    data_venda,
+    bairro_entrega
+FROM
+    itens_venda
+WHERE
+    bairro_entrega IS NOT NULL --- mostrar so oq foi entregue
+ORDER BY
+    venda_id;
+
+
+------------------------- CONSULTA 05 -------------------------
 SELECT
-    produto_id AS "Código do Produto",
-    produto_nome AS "Nome do Produto",
-    categoria AS "Categoria",
-    unidade AS "Unidade de Medida"
+    venda_id,
+    produto_nome,
+    quantidade,
+    unidade,
+    valor_unitario,
+    ROUND(quantidade * valor_unitario, 2) AS valor_item --- Round: arredondar 
 FROM
-    itens_venda; 
+    itens_venda
+ORDER BY
+    valor_item DESC,
+    venda_id ASC
+LIMIT 5 OFFSET 5; --- Limite: so uso 5 exemplos, OFFSET: pulo os 5 primeiros 
 
--- CONSULTA 04 
 
+------------------------- CONSULTA 06 -------------------------
 SELECT
-    produto_id AS "Código do Produto",
-    produto_nome AS "Nome do Produto",
-    categoria AS "Categoria",
-    unidade AS "Unidade de Medida"
+    venda_id,
+    data_venda,
+    COALESCE(bairro_entrega, 'Retirada no balcao') AS destino,
+    COUNT(*) AS itens,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS valor_total
 FROM
-    itens_venda; 
+    itens_venda
+GROUP BY
+    venda_id,
+    data_venda,
+    bairro_entrega
+ORDER BY
+    valor_total DESC;
 
--- CONSULTA 05
 
+------------------------- CONSULTA 07 -------------------------
 SELECT
-    produto_id AS "Código do Produto",
-    produto_nome AS "Nome do Produto",
-    categoria AS "Categoria",
-    unidade AS "Unidade de Medida"
+    data_venda,
+    COUNT(DISTINCT venda_id) AS vendas,
+    COUNT(*) AS itens,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento
 FROM
-    itens_venda; 
+    itens_venda
+GROUP BY
+    data_venda
+ORDER BY
+    data_venda;
 
----------------------------------------------------------------------------------------------
+------------------------- CONSULTA 08 -------------------------
+SELECT
+    produto_id,
+    produto_nome,
+    unidade,
+    SUM(quantidade) AS qtd_total,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento,
+    ROUND(AVG(valor_unitario), 2) AS media_simples,
+    ROUND(SUM(quantidade * valor_unitario) / SUM(quantidade), 2) AS media_ponderada
+FROM
+    itens_venda
+GROUP BY
+    produto_id,
+    produto_nome,
+    unidade
+ORDER BY
+    faturamento DESC;
+
+
+------------------------- CONSULTA 09 -------------------------
+SELECT
+    categoria,
+    unidade,
+    COUNT(*) AS itens,
+    SUM(quantidade) AS qtd_total,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento
+FROM
+    itens_venda
+GROUP BY
+    categoria,
+    unidade
+ORDER BY
+    categoria;
+
+
+------------------------- CONSULTA 10 -------------------------
+SELECT
+    bairro_entrega,
+    COUNT(DISTINCT venda_id) AS entregas,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento
+FROM
+    itens_venda
+WHERE
+    bairro_entrega IS NOT NULL
+GROUP BY
+    bairro_entrega
+HAVING
+    ROUND(SUM(quantidade * valor_unitario), 2) > 40.00
+ORDER BY
+    faturamento DESC;
+
+------------------------- CONSULTA 11 -------------------------
+SELECT
+    venda_id,
+    ROUND(SUM(quantidade * valor_unitario), 2) AS total_arredondado,
+    SUM(ROUND(quantidade * valor_unitario, 2)) AS soma_dos_itens_arredondados
+FROM
+    itens_venda
+GROUP BY
+    venda_id
+HAVING
+    ROUND(SUM(quantidade * valor_unitario), 2)
+    <> SUM(ROUND(quantidade * valor_unitario, 2))
+ORDER BY
+    venda_id;
+
+--- Parte 4: Análise do Modelo e da Tabela
+
+--- 01: Se repetem atoa: Informações da venda (como número, data e bairro) 
+--- e dados fixos do produto (nome, categoria e unidade) aparecem repetidos 
+--- em várias linhas quando há mais de um item.
+
+
+
+--- 02: -- Questao 2.
+-- Regra 6, nao garantida: "um produto aparece no maximo uma vez em
+-- cada venda". Nada na tabela impede que o mesmo produto_id apareca
+-- duas vezes na mesma venda_id.
+--
+-- Regra 7, nao garantida: "a quantidade vendida e sempre maior que
+-- zero". A coluna quantidade e NUMERIC(10,3) NOT NULL, o que exige
+-- um valor, mas nao impede que esse valor seja zero ou negativo.
+--
+-- INSERT que o SGBD aceitaria, sem executar, violando a regra 6
+-- (repete o produto 5 na venda 3001, que ja tem esse produto):
+--
+-- INSERT INTO itens_venda
+--     (venda_id, data_venda, bairro_entrega, produto_id,
+--      produto_nome, categoria, unidade, quantidade, valor_unitario)
+-- VALUES
+--     (3001, '2026-08-03', NULL, 5, 'Tomate', 'Legume', 'Kg', 0.500, 7.49);
+
+
+
+--- 03: Morango: A média ponderada ficou menor que a simples 
+--- porque a maior quantidade vendida ocorreu justamente no 
+--- dia em que o preço estava mais barato, puxando a média para baixo.
+
+--- Abacaxi: Aconteceu o inverso. A média ponderada ficou maior porque 
+--- a maior venda foi feita no dia em que o preço estava mais alto.
+
+--- Cheiro-verde: As duas médias deram exatamente iguais 
+--- porque o preço desse produto nunca mudou nas vendas registradas. 
+--- Sem variação de preço, o peso da quantidade não altera o resultado.
+
 
