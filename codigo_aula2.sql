@@ -1,4 +1,4 @@
--- Active: 1787177433004@@127.0.0.1@5432@bd_aula@public
+-- Active: 1789657922555@@127.0.0.1@5432@bd_aula@public
 DROP TABLE IF EXISTS notas_alunos;
 
 CREATE TABLE notas_alunos(

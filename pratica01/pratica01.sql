@@ -1,4 +1,4 @@
--- Active: 1789596509005@@127.0.0.1@5432@bd_hortifruti@public
+-- Active: 1789657922555@@127.0.0.1@5432@bd_aula@public
 DROP TABLE IF EXISTS itens_venda;
 CREATE TABLE IF NOT EXISTS itens_venda(
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
