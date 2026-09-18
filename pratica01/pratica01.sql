@@ -1,4 +1,4 @@
--- Active: 1789679199049@@127.0.0.1@5432@bd_hortifruti@public
+-- Active: 1789690209143@@127.0.0.1@5432@bd_aula@public
 
 -- APS I - BANCO DE DADOS
 -- ALUNO: IGOR VINÍCIUS ROMAO DE MAGALHAES
@@ -184,17 +184,17 @@ LIMIT 5 OFFSET 5; --- Limite: so uso 5 exemplos, OFFSET: pulo os 5 primeiros
 SELECT
     venda_id,
     data_venda,
-    COALESCE(bairro_entrega, 'Retirada no balcao') AS destino,
-    COUNT(*) AS itens,
-    ROUND(SUM(quantidade * valor_unitario), 2) AS valor_total
+    COALESCE(bairro_entrega, 'Retirada no balcao') AS destino, --- COALESCE: reescrita, troco o null e coloco retirada no balcao
+    COUNT(*) AS itens, --- COUNT: conta quantos itens tem na venda
+    ROUND(SUM(quantidade * valor_unitario), 2) AS valor_total --- SUM: soma os valores, dps multiplica qnt e valor
 FROM
     itens_venda
-GROUP BY
+GROUP BY                   --- GROUP BY: agrupar por vendas
     venda_id,
     data_venda,
     bairro_entrega
 ORDER BY
-    valor_total DESC;
+    valor_total DESC;      --- DESC: ordem decrescente
 
 
 ------------------------- CONSULTA 07 -------------------------
